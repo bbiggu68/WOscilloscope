@@ -6,6 +6,10 @@ import android.util.Log;
  * Created by bbiggu on 2015. 11. 2..
  */
 public final class ReceiveBuffer {
+    // Debugging
+    private final static String TAG = "ReceiveBuffer";
+    private static final boolean D = true;
+    //
     public static final int MAXSIZE = 65536;
     public static byte[] mainBuf = new byte[MAXSIZE];
     public static int head = 0;
@@ -23,7 +27,7 @@ public final class ReceiveBuffer {
     }
 
     public static boolean addData(byte[] inData, int size) {
-        Log.d("ReceiveBuffer", "head = " + head + ", size = " + size);
+        if (D) Log.d(TAG, "head = " + head + ", size = " + size);
         if ((size + head) > MAXSIZE) {
             bAcceptable = false;
             head = head % MAXSIZE;

@@ -4,6 +4,10 @@ package org.homenet.woscilloscope;
  * Created by bbiggu on 2015. 11. 2..
  */
 public final class CommandBuilder {
+    // Debugging
+    private final static String TAG = "CommandBuilder";
+    private static final boolean D = true;
+    //
     public static final int CMD_STX = 0;
     public static final int CMD_CMD = 1;
     public static final int CMD_SIZE1 = 2;
@@ -100,7 +104,7 @@ public final class CommandBuilder {
         int chksum = 0;
         int add = 0;
         OutData[add++] = 0x02;
-        OutData[add++] = (byte)inCMD;
+        OutData[add++] = inCMD;
         OutData[add++] = 0x00;	//Size1
         OutData[add++] = 0x01;	//Size2
         OutData[add++] = inVal;
@@ -120,7 +124,7 @@ public final class CommandBuilder {
         int chksum = 0;
         int add = 0;
         OutData[add++] = 0x02;
-        OutData[add++] = (byte)inCMD;
+        OutData[add++] = inCMD;
         OutData[add++] = 0;	//size1
         OutData[add++] = 0;	//size2
         for (int i = 1; i < add; i++) {
@@ -139,7 +143,7 @@ public final class CommandBuilder {
         int chksum = 0;
         int add = 0;
         OutData[add++] = 0x02;
-        OutData[add++] = (byte)inCMD;
+        OutData[add++] = inCMD;
         OutData[add++] = (byte)(size / 256);	//size1
         OutData[add++] = (byte)(size);	//size2
         for (int i = 0; i < size; i++) OutData[add++] = inBuf[i];

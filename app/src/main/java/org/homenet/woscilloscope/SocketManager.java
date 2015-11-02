@@ -13,6 +13,10 @@ import java.net.InetAddress;
  * Created by bbiggu on 2015. 11. 2..
  */
 public class SocketManager implements Runnable {
+    // Debugging
+    private final static String TAG = "SocketManager";
+    private static final boolean D = true;
+    //
     private String mRemoteHostIP = null;
     private int mRemoteHostPort = 5000;
     private int mLocalHostPort = 5000;
@@ -50,6 +54,7 @@ public class SocketManager implements Runnable {
         @Override
         public void run()
         {
+            //
             Looper.myLooper().quit();
         }
     }
@@ -62,6 +67,14 @@ public class SocketManager implements Runnable {
     }
 
     //===================================================
+    // SocketManager Host IP, Host Port 설정.
+   //===================================================
+    public void setHostInfo(String hostip, int hostport) {
+        this.mRemoteHostIP = hostip;
+        this.mRemoteHostPort = hostport;
+    }
+
+    //===================================================
     // SocketManager 객체의 종료.
     //===================================================
     public void quit() {
@@ -71,14 +84,23 @@ public class SocketManager implements Runnable {
         mHandler.post(new QuitLooper());
     }
 
+    //===================================================
+    // public method : SocketManager.connect()
+    //===================================================
     public void connect() {
         mHandler.sendEmptyMessage(ThreadMessage.SM_Connect);
     }
 
+    //===================================================
+    // public method : SocketManager.disconnect()
+    //===================================================
     public void disconnect() {
         mHandler.sendEmptyMessage(ThreadMessage.SM_Disconnect);
     }
 
+    //===================================================
+    // public method : SocketManager.sendCommand()
+    //===================================================
     public void sendCommand(byte cmd, byte arg) {
         Message msg = new Message();
         msg.what = ThreadMessage.SM_Send;
@@ -100,16 +122,19 @@ public class SocketManager implements Runnable {
         mHandler.sendMessage(msg);
     }
 
+    //===================================================
+    // private methods
+    //===================================================
     private void connectHost(String hostip, int hostport) {
         setServerInetAddress();
         try {
             mSocket = new DatagramSocket(mLocalHostPort);
             //mSocket = new DatagramSocket();
             mSocket.connect(mRemoteHostInetAddr, mRemoteHostPort);
-            Log.d("lds1000:WorkerThread", "Remote Host Connecting OK!");
+            if (D) Log.d(TAG, "Remote Host Connecting OK!");
             mKillThread = false;
         } catch (Exception e) {
-            Log.d("lds1000:WorkerThread", "Oops! Error Occurred in connecting...");
+            if (D) Log.d(TAG, "Oops! Error Occurred in connecting...");
         }
     }
 
@@ -122,24 +147,24 @@ public class SocketManager implements Runnable {
     private void setServerInetAddress() {
         try {
             mRemoteHostInetAddr = InetAddress.getByName(mRemoteHostIP);
-            Log.d("lds1000:WorkerThread", "Make Server Address OK!");
+            if (D) Log.d(TAG, "Make Server Address OK!");
         } catch (Exception e) {
-            Log.d("lds1000:WorkerThread", "Make Server Address Failure!");
+            if (D) Log.d(TAG, "Make Server Address Failure!");
         }
     }
 
     private void sendData(byte[] data) {
         //byte[] byteInData = data.getBytes();
-        byte[] byteInData = data;
-        mSendPacket = new DatagramPacket(byteInData, byteInData.length, mRemoteHostInetAddr, mRemoteHostPort);
+//        byte[] byteInData = data;
+        mSendPacket = new DatagramPacket(data, data.length, mRemoteHostInetAddr, mRemoteHostPort);
         try
         {
             mSocket.send(mSendPacket);
-            Log.d("lds1000:WorkerThread", "Successful Sent. Data is: '" + new String(byteInData) + "'");
+            if (D) Log.d(TAG, "Successful Sent. Data is: '" + new String(data) + "'");
         }
         catch(Exception send_e)
         {
-            Log.d("lds1000:WorkerThread", "Oops! Error Occurred in sending...");
+            if (D) Log.d(TAG, "Oops! Error Occurred in sending...");
         }
     }
 }

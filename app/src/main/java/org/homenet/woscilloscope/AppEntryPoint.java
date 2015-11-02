@@ -7,7 +7,10 @@ import android.content.res.Configuration;
  * Created by bbiggu on 2015. 11. 2..
  */
 public class AppEntryPoint extends Application {
-
+    // Debugging
+    private final static String TAG = "AppEntryPoint";
+    private static final boolean D = true;
+    //
 
     @Override
     public void onCreate() {
