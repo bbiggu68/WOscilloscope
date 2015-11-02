@@ -1,7 +1,5 @@
 package org.homenet.woscilloscope;
 
-import android.bluetooth.BluetoothAdapter;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -81,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
                 mThread4Socket.start();
                 mSocketManagingClass.setHostInfo("192.168.0.200", 5000);
+                try { Thread.sleep(100); } catch (InterruptedException e) {;}
                 mSocketManagingClass.connect();
                 break;
             case R.id.btnDisconnect:
