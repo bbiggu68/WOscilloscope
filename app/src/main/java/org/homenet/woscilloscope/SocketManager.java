@@ -61,7 +61,9 @@ public class SocketManager implements Runnable {
 //        mReciver = new DataReceiver();
     }
 
+    //===================================================
     // SocketManager 객체의 종료.
+    //===================================================
     public void quit() {
 //        mKillThread = true;
         // receivethread가 살아있다면 receivethread 종료 작업부터 하고 (mKillThread = true; receivethread.interrupted(), receivethread.join()
