@@ -1,14 +1,22 @@
 package org.homenet.woscilloscope;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
     // Debugging
     private final static String TAG = "MainActivity";
     private static final boolean D = true;
     //
+    private SocketManager mSocketManagingClass = null;
+    private Thread mThread4Socket = null;
+    //==========================================
+    // Activity Callback
+    //==========================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,5 +68,27 @@ public class MainActivity extends AppCompatActivity {
         // 매니페스트 파일에 activity 태그에 android:configChanges="orientation|screenSize|keyboardHidden"
         // 설정이 되어 있는 경우에만 호출된다. 이렇게 configChanges 설정을 하면 화면방향 변경시 액티비티 재생성 하지 않음.
         super.onConfigurationChanged(newConfig);
+    }
+    //==========================================
+    // User Methods
+    //==========================================
+    public void mOnClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnConnect:
+                // Start SocketManager Thread
+                mSocketManagingClass = new SocketManager();
+                mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
+                mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
+                mThread4Socket.start();
+                mSocketManagingClass.setHostInfo("192.168.0.200", 5000);
+                mSocketManagingClass.connect();
+                break;
+            case R.id.btnDisconnect:
+                mSocketManagingClass.disconnect();
+                if (mThread4Socket.isAlive()) {
+                    mSocketManagingClass.quit();
+                }
+                break;
+        }
     }
 }
