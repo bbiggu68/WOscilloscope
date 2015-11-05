@@ -5,6 +5,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -59,27 +60,69 @@ public class SocketManager implements Runnable {
         }
     }
 
-    //===================================================
-    // SocketManager 객체의 초기화.
-    //===================================================
-    SocketManager() {
-//        mReciver = new DataReceiver();
+    class DataReceiver implements Runnable {
+        public void run() {
+            byte[] rcvBuffer = new byte[2048];
+            byte[] rcvData = null;
+
+            try {
+                while (!mKillThread) {
+                    mReceivePacket = new DatagramPacket(rcvBuffer, rcvBuffer.length);
+                    try {
+                        mSocket.setSoTimeout(5000);
+                        mSocket.receive(mReceivePacket);
+
+                        ReceiveBuffer.cnt100msec=0;
+
+                        rcvData = new byte[mReceivePacket.getLength()];
+                        System.arraycopy(mReceivePacket.getData(), 0, rcvData, 0, mReceivePacket.getLength());
+                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvData.toString() + "' Size is '" + mReceivePacket.getLength());
+                        if (mReceivePacket.getLength() > 0) {
+                            if (ReceiveBuffer.addData(rcvData, mReceivePacket.getLength())) {
+                                if (ReceiveBuffer.head != ReceiveBuffer.tail) {
+                                    if (CommandBuilder.validateCommand()) {
+                                        CommandBuilder.bUsableCommand = true;
+                                        if (D) Log.d(TAG, "bUsableCommand = true");
+                                    }
+                                }
+                            }
+
+                        }
+
+
+                    } catch (InterruptedIOException e) {
+                        if (D) Log.d(TAG, "ReceiveTimeout!");
+                    }
+                    mReceivePacket = null;
+                    rcvData = null;
+                    rcvBuffer = null;
+                    rcvBuffer = new byte[2048];
+                }
+            } catch (Exception e) {
+                if (D) Log.d(TAG, "Error Occurred in receiving");
+            } finally {
+                mSocket.close();
+                if (D) Log.d(TAG, "Socket Closed!");
+            }
+        }
     }
 
     //===================================================
+    // SocketManager 객체의 초기화.
     // SocketManager Host IP, Host Port 설정.
-   //===================================================
-    public void setHostInfo(String hostip, int hostport) {
+    //===================================================
+    SocketManager(String hostip, int hostport) {
         this.mRemoteHostIP = hostip;
         this.mRemoteHostPort = hostport;
+//        mReciver = new DataReceiver();
     }
 
     //===================================================
     // SocketManager 객체의 종료.
     //===================================================
     public void quit() {
-//        mKillThread = true;
-        // receivethread가 살아있다면 receivethread 종료 작업부터 하고 (mKillThread = true; receivethread.interrupted(), receivethread.join()
+        mKillThread = true;
+        // receivethread가 살아있다면 receivethread 종료 작업부터 하고 (mKillThread = true; receivethread.interrupt(), receivethread.join()
 
         mHandler.post(new QuitLooper());
     }
@@ -139,8 +182,9 @@ public class SocketManager implements Runnable {
     }
 
     private void disconnectHost() {
+        mSocket.close();
         mKillThread = true;
-        // receivethread.interrupte();
+        // receivethread.interrupt();
         // receivethread.join();
     }
 

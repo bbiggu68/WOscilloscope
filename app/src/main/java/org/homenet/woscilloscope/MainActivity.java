@@ -74,12 +74,12 @@ public class MainActivity extends AppCompatActivity {
         switch (v.getId()) {
             case R.id.btnConnect:
                 // Start SocketManager Thread
-                mSocketManagingClass = new SocketManager();
+                mSocketManagingClass = new SocketManager("10.0.1.25", 5000);
                 mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
                 mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
                 mThread4Socket.start();
-                mSocketManagingClass.setHostInfo("192.168.0.200", 5000);
-                try { Thread.sleep(100); } catch (InterruptedException e) {;}
+                // 스레드 start()하고 조금 기다려야 스레드의 run()이 실행되서 핸들러가 만들어진다.
+                try { Thread.sleep(50); } catch (InterruptedException e) {;}
                 mSocketManagingClass.connect();
                 break;
             case R.id.btnDisconnect:
