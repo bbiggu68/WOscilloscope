@@ -27,6 +27,8 @@ public class SocketManager implements Runnable {
     private DatagramPacket mReceivePacket = null;
     private boolean mKillThread = false;
     private Handler mHandler;
+    private DataReceiver mReciver = null;
+    private Thread mReceiveThread = null;
 
     public void run() {
         Looper.prepare();
@@ -35,8 +37,8 @@ public class SocketManager implements Runnable {
                 switch (msg.what) {
                     case ThreadMessage.SM_Connect:	// connect
                         connectHost(mRemoteHostIP, mRemoteHostPort); // Connect Remote Host
-//                        mReceiveThread = new Thread(mReciver, "DataReceiver");
-//                        mReceiveThread.start();
+                        mReceiveThread = new Thread(mReciver, "DataReceiver");
+                        mReceiveThread.start();
                         break;
                     case ThreadMessage.SM_Disconnect:	// disconnect
                         disconnectHost();
@@ -62,7 +64,8 @@ public class SocketManager implements Runnable {
 
     class DataReceiver implements Runnable {
         public void run() {
-            byte[] rcvBuffer = new byte[2048];
+//            byte[] rcvBuffer = new byte[2048];
+            byte[] rcvBuffer = new byte[20];
             byte[] rcvData = null;
 
             try {
@@ -114,7 +117,7 @@ public class SocketManager implements Runnable {
     SocketManager(String hostip, int hostport) {
         this.mRemoteHostIP = hostip;
         this.mRemoteHostPort = hostport;
-//        mReciver = new DataReceiver();
+        mReciver = new DataReceiver();
     }
 
     //===================================================
@@ -122,8 +125,8 @@ public class SocketManager implements Runnable {
     //===================================================
     public void quit() {
         mKillThread = true;
-        // receivethread가 살아있다면 receivethread 종료 작업부터 하고 (mKillThread = true; receivethread.interrupt(), receivethread.join()
-
+        mReceiveThread.interrupt();
+        try { mReceiveThread.join(); } catch (InterruptedException e) {;}
         mHandler.post(new QuitLooper());
     }
 
@@ -182,10 +185,10 @@ public class SocketManager implements Runnable {
     }
 
     private void disconnectHost() {
-        mSocket.close();
         mKillThread = true;
-        // receivethread.interrupt();
-        // receivethread.join();
+        mReceiveThread.interrupt();
+        try { mReceiveThread.join(); } catch (InterruptedException e) {;}
+        mSocket.close();
     }
 
     private void setServerInetAddress() {
