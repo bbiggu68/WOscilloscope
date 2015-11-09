@@ -2,4 +2,6 @@
     <string name="app_name">WOscilloscope</string>
     <string name="btnconnect_caption">Connect</string>
     <string name="btndisconnect_caption">Disconnect</string>
+    <string name="btnstart_caption">Start</string>
+    <string name="btnstop_caption">Stop</string>
 </resources>

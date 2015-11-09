@@ -28,4 +28,14 @@
         android:layout_toRightOf="@+id/btnConnect"
         android:layout_toEndOf="@+id/btnConnect"
         android:onClick="mOnClick" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btnstart_caption"
+        android:id="@+id/btnStart"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/btnDisconnect"
+        android:layout_toEndOf="@+id/btnDisconnect"
+        android:onClick="mOnClick" />
 </RelativeLayout>

@@ -4,6 +4,7 @@ import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
     // Debugging
@@ -87,6 +88,18 @@ public class MainActivity extends AppCompatActivity {
                 if (mThread4Socket.isAlive()) {
                     mSocketManagingClass.quit();
                 }
+                break;
+            case R.id.btnStart:
+                Button tmpButton = (Button)v;
+
+                if (tmpButton.getText().equals(getResources().getText(R.string.btnstart_caption))) {
+                    tmpButton.setText(getResources().getText(R.string.btnstop_caption));
+                    mSocketManagingClass.sendCommand(CommandBuilder.WiressProbeCMD.cmdStartStop, CommandBuilder.WiressProbeCMD.subcmdStart);
+                } else {
+                    tmpButton.setText(getResources().getText(R.string.btnstart_caption));
+                    mSocketManagingClass.sendCommand(CommandBuilder.WiressProbeCMD.cmdStartStop, CommandBuilder.WiressProbeCMD.subcmdStop);
+                }
+
                 break;
         }
     }
