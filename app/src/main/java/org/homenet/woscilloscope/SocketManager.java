@@ -9,6 +9,7 @@ import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 
 /**
  * Created by bbiggu on 2015. 11. 2..
@@ -84,6 +85,8 @@ public class SocketManager implements Runnable {
                             if (ReceiveBuffer.addData(rcvData, mReceivePacket.getLength())) {
                                 if (ReceiveBuffer.head != ReceiveBuffer.tail) {
                                     if (CommandBuilder.validateCommand()) {
+                                        // 수신된 데이터가 완성된 커맨드(프레임)이므로 처리(그래프 표시) 가능하다.
+                                        // 그래프 그리는 스레드에게 메시지를 보내 처리하도록 한다.
                                         CommandBuilder.bUsableCommand = true;
                                         if (D) Log.d(TAG, "bUsableCommand = true");
                                     }
@@ -101,6 +104,10 @@ public class SocketManager implements Runnable {
                     rcvBuffer = null;
                     rcvBuffer = new byte[2048];
                 }
+            //} catch (PortUnreachableException e) {
+            } catch (SocketException e) {
+                // 연결 대상이 없을 때 (Probe Simulator가 실행되지 않은 상태일 때)
+                if (D) Log.d(TAG, "PortUnreachableException");
             } catch (Exception e) {
                 if (D) Log.d(TAG, "Error Occurred in receiving");
             } finally {
@@ -148,13 +155,19 @@ public class SocketManager implements Runnable {
     // public method : SocketManager.sendCommand()
     //===================================================
     public void sendCommand(byte cmd, byte arg) {
+//        Message msg = Message.obtain(mHandler, ThreadMessage.SM_Send, CommandBuilder.makeSendCommand(cmd, arg));
+//        mHandler.sendMessage(msg);
+
         Message msg = new Message();
         msg.what = ThreadMessage.SM_Send;
-        msg.obj = CommandBuilder.makeSendCommand(cmd, arg);
+        msg.obj = CommandBuilder.makeSendCommand(cmd,arg);
         mHandler.sendMessage(msg);
     }
 
     public void sendCommand(byte cmd, int size, byte[] arg) {
+//        Message msg = Message.obtain(mHandler, ThreadMessage.SM_Send, CommandBuilder.makeSendCommand(cmd,size,arg));
+//        mHandler.sendMessage(msg);
+
         Message msg = new Message();
         msg.what = ThreadMessage.SM_Send;
         msg.obj = CommandBuilder.makeSendCommand(cmd,size,arg);
@@ -162,6 +175,9 @@ public class SocketManager implements Runnable {
     }
 
     public void sendCommand(byte cmd) {
+//        Message msg = Message.obtain(mHandler, ThreadMessage.SM_Send, CommandBuilder.makeSendCommand(cmd));
+//        mHandler.sendMessage(msg);
+
         Message msg = new Message();
         msg.what = ThreadMessage.SM_Send;
         msg.obj = CommandBuilder.makeSendCommand(cmd);

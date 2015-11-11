@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         switch (v.getId()) {
             case R.id.btnConnect:
                 // Start SocketManager Thread
-                mSocketManagingClass = new SocketManager("10.0.1.25", 5000);
+                mSocketManagingClass = new SocketManager("10.0.1.21", 5000);
                 mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
                 mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
                 mThread4Socket.start();
