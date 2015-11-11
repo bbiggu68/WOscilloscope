@@ -5,6 +5,7 @@ package org.homenet.woscilloscope;
  */
 public final class ThreadMessage {
     // MainActivity
+    public static final int MA_PROC_RCV_CMD = 0;
     public static final int MA_DrawData = 1;
     // Timer4StatusAllQuery
     public static final int TM_TimerSendQuery = 1;

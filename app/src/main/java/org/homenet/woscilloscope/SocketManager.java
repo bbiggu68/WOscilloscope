@@ -18,7 +18,12 @@ public class SocketManager implements Runnable {
     // Debugging
     private final static String TAG = "SocketManager";
     private static final boolean D = true;
+    // private 상수
+    private final static int FRAME_SIZE = 10000;
+    private final static int RCV_BUFFER_SIZE = FRAME_SIZE + 4 + 1;
+    private final static int SO_TIMEOUT_MS = 5000;
     //
+    private MainActivity mCallerClone = null;
     private String mRemoteHostIP = null;
     private int mRemoteHostPort = 5000;
     private int mLocalHostPort = 5000;
@@ -65,44 +70,37 @@ public class SocketManager implements Runnable {
 
     class DataReceiver implements Runnable {
         public void run() {
-//            byte[] rcvBuffer = new byte[2048];
-            byte[] rcvBuffer = new byte[20];
-            byte[] rcvData = null;
+            byte[] rcvBuffer = new byte[RCV_BUFFER_SIZE];
 
             try {
                 while (!mKillThread) {
                     mReceivePacket = new DatagramPacket(rcvBuffer, rcvBuffer.length);
                     try {
-                        mSocket.setSoTimeout(5000);
+                        mSocket.setSoTimeout(SO_TIMEOUT_MS);
                         mSocket.receive(mReceivePacket);
 
                         ReceiveBuffer.cnt100msec=0;
 
-                        rcvData = new byte[mReceivePacket.getLength()];
-                        System.arraycopy(mReceivePacket.getData(), 0, rcvData, 0, mReceivePacket.getLength());
-                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvData.toString() + "' Size is '" + mReceivePacket.getLength());
+                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvBuffer.toString() + "'\n Size is '" + mReceivePacket.getLength());
+                        mCallerClone.parentApplication.starttime = System.nanoTime();
                         if (mReceivePacket.getLength() > 0) {
-                            if (ReceiveBuffer.addData(rcvData, mReceivePacket.getLength())) {
+                            if (ReceiveBuffer.addData(rcvBuffer, mReceivePacket.getLength())) {
                                 if (ReceiveBuffer.head != ReceiveBuffer.tail) {
                                     if (CommandBuilder.validateCommand()) {
                                         // 수신된 데이터가 완성된 커맨드(프레임)이므로 처리(그래프 표시) 가능하다.
                                         // 그래프 그리는 스레드에게 메시지를 보내 처리하도록 한다.
                                         CommandBuilder.bUsableCommand = true;
                                         if (D) Log.d(TAG, "bUsableCommand = true");
+                                        mCallerClone.handlerMain.sendEmptyMessage(ThreadMessage.MA_PROC_RCV_CMD);
                                     }
                                 }
                             }
-
                         }
-
-
                     } catch (InterruptedIOException e) {
                         if (D) Log.d(TAG, "ReceiveTimeout!");
                     }
                     mReceivePacket = null;
-                    rcvData = null;
-                    rcvBuffer = null;
-                    rcvBuffer = new byte[2048];
+                    rcvBuffer = new byte[RCV_BUFFER_SIZE];
                 }
             //} catch (PortUnreachableException e) {
             } catch (SocketException e) {
@@ -121,9 +119,10 @@ public class SocketManager implements Runnable {
     // SocketManager 객체의 초기화.
     // SocketManager Host IP, Host Port 설정.
     //===================================================
-    SocketManager(String hostip, int hostport) {
+    SocketManager(String hostip, int hostport, MainActivity caller) {
         this.mRemoteHostIP = hostip;
         this.mRemoteHostPort = hostport;
+        this.mCallerClone = caller;
         mReciver = new DataReceiver();
     }
 

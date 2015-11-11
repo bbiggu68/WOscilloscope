@@ -11,6 +11,8 @@ public class AppEntryPoint extends Application {
     private final static String TAG = "AppEntryPoint";
     private static final boolean D = true;
     //
+    public long starttime = 0;
+    public long endtime = 0;
 
     @Override
     public void onCreate() {

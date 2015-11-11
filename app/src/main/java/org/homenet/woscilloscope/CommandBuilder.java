@@ -158,7 +158,7 @@ public final class CommandBuilder {
         return retData;
     }
 
-    public final class WiressProbeCMD {
+    public final class WirelessProbeCMD {
         public static final byte cmdDeviceOKQuery = (byte) 0x01;
 
         public static final byte cmdStartStop = (byte) 0x10;
@@ -167,6 +167,8 @@ public final class CommandBuilder {
 
         public static final byte cmdStartStopQuery = (byte) 0x1A;
         public static final byte cmdStartStopQueryReturn = (byte) 0x1F;
+
+        public static final byte cmdPulseResult = (byte) 0x20;
 
         public static final byte cmdStatusAllQuery = (byte) 0xAA;
         public static final byte cmdStatusAllQueryReturn = (byte) 0xAF;
