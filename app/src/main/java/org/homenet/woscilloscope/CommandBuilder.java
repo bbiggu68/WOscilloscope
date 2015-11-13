@@ -1,5 +1,7 @@
 package org.homenet.woscilloscope;
 
+import android.util.Log;
+
 /**
  * Created by bbiggu on 2015. 11. 2..
  */
@@ -75,8 +77,9 @@ public final class CommandBuilder {
                         receiveCmd[5 + validDataCnt] = (byte)aData[0];
                         ret = true;
                     } else {
+                        if (D) Log.d(TAG, "Checksum Error Occurred!!!");
                         validState = CMD_STX;
-                        ReceiveBuffer.initBuffer();
+                        ReceiveBuffer.initBuffer((byte)0x00);
                         ret = false;
                     }
                     break;

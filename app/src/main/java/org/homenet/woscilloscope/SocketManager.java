@@ -21,6 +21,7 @@ public class SocketManager implements Runnable {
     // private 상수
     private final static int FRAME_SIZE = 10000;
     private final static int RCV_BUFFER_SIZE = FRAME_SIZE + 4 + 1;
+//    private final static int RCV_BUFFER_SIZE = 1000;
     private final static int SO_TIMEOUT_MS = 5000;
     //
     private MainActivity mCallerClone = null;
@@ -79,8 +80,6 @@ public class SocketManager implements Runnable {
                         mSocket.setSoTimeout(SO_TIMEOUT_MS);
                         mSocket.receive(mReceivePacket);
 
-                        ReceiveBuffer.cnt100msec=0;
-
                         if (D) Log.d(TAG, "Successful Received: Data is '" + rcvBuffer.toString() + "'\n Size is '" + mReceivePacket.getLength());
                         mCallerClone.parentApplication.starttime = System.nanoTime();
                         if (mReceivePacket.getLength() > 0) {
@@ -90,7 +89,7 @@ public class SocketManager implements Runnable {
                                         // 수신된 데이터가 완성된 커맨드(프레임)이므로 처리(그래프 표시) 가능하다.
                                         // 그래프 그리는 스레드에게 메시지를 보내 처리하도록 한다.
                                         CommandBuilder.bUsableCommand = true;
-                                        if (D) Log.d(TAG, "bUsableCommand = true");
+//                                        if (D) Log.d(TAG, "bUsableCommand = true");
                                         mCallerClone.handlerMain.sendEmptyMessage(ThreadMessage.MA_PROC_RCV_CMD);
                                     }
                                 }
