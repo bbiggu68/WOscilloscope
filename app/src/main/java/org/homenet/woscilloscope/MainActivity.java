@@ -133,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
         int add = 0;
         byte[] inB = new byte[4];
         String temp="";
+        if (D) Log.d(TAG, "큐에 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
+
         switch (CommandBuilder.receiveCmd[1])
         {
             case CommandBuilder.WirelessProbeCMD.cmdReceiveOKReturn:

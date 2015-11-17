@@ -85,7 +85,9 @@ public class SocketManager implements Runnable {
                         if (mReceivePacket.getLength() > 0) {
                             if (ReceiveBuffer.addData(rcvBuffer, mReceivePacket.getLength())) {
                                 if (ReceiveBuffer.head != ReceiveBuffer.tail) {
-                                    if (CommandBuilder.validateCommand()) {
+//                                    if (CommandBuilder.validateCommand()) {
+                                    if (CommandBuilder.validateCommandAtOnce()) {
+                                        CommandBuilder.rcvCmdQueue.offer(CommandBuilder.receiveCmd);
                                         // 수신된 데이터가 완성된 커맨드(프레임)이므로 처리(그래프 표시) 가능하다.
                                         // 그래프 그리는 스레드에게 메시지를 보내 처리하도록 한다.
                                         CommandBuilder.bUsableCommand = true;

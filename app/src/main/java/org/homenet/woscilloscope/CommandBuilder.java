@@ -2,6 +2,9 @@ package org.homenet.woscilloscope;
 
 import android.util.Log;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * Created by bbiggu on 2015. 11. 2..
  */
@@ -18,14 +21,84 @@ public final class CommandBuilder {
     public static final int CMD_CS = 5;
 
     public static final int MAXSIZE = 65536;
+    private final static int FRAME_SIZE = 10000;
 
     public static int validState = CMD_STX;
     public static int validChkSum = 0;
     public static int validDataCnt = 0;
     public static int validDataSize = 0;
-    public static byte[] receiveCmd = new byte[MAXSIZE];
+//    public static byte[] receiveCmd = new byte[FRAME_SIZE];
+    public static byte[] receiveCmd = null;
+    public static Queue<byte[]> rcvCmdQueue = new LinkedList<byte[]>();
 
     public static boolean bUsableCommand = false;
+
+    public static boolean validateCommandAtOnce() {
+        boolean ret = false;
+        int[] retByte = {0};
+
+        while (true) {
+            // 원형버퍼에 데이터가 없거나 버퍼 MaxSize가 초과되었다면 invalidate 이므로 리젝트
+            if (ReceiveBuffer.tail == ReceiveBuffer.head) {
+                ReceiveBuffer.tail = 0;
+                ReceiveBuffer.head = 0;
+                break;
+            }
+
+            retByte[0] = ReceiveBuffer.mainBuf[ReceiveBuffer.tail++];
+            ReceiveBuffer.tail = ReceiveBuffer.tail % ReceiveBuffer.MAXSIZE;
+            if(retByte[0] < 0) retByte[0] = 256 + retByte[0];
+            switch (validState) {
+                case CMD_STX:
+                    if (retByte[0] == 0x02) validState = CMD_CMD;
+                    validChkSum = 0;
+                    break;
+                case CMD_CMD:
+                    validState = CMD_SIZE1;
+                    validChkSum = validChkSum + retByte[0];
+                    validChkSum = validChkSum % 256;
+                    break;
+                case CMD_SIZE1:
+                    validState = CMD_SIZE2;
+                    validDataSize = retByte[0] * 256;
+                    validChkSum = validChkSum + retByte[0];
+                    validChkSum = validChkSum % 256;
+                    break;
+                case CMD_SIZE2:
+                    validDataSize = validDataSize + retByte[0];
+                    validDataCnt = 0; // 헤더에 기록된 Size와 실제 수신된 데이터의 크기를 비교하기 위해
+                    if (validDataSize == 0) {
+                        validState = CMD_CS;
+                    } else {
+                        validState = CMD_DATA;
+                    }
+                    validChkSum = validChkSum + retByte[0];
+                    validChkSum = validChkSum % 256;
+                    break;
+                case CMD_DATA:
+                    validDataCnt++;
+                    validChkSum = validChkSum + retByte[0];
+                    validChkSum = validChkSum % 256;
+                    if (validDataCnt >= validDataSize) validState = CMD_CS;
+                    break;
+                case CMD_CS:
+                    validState = CMD_STX;
+                    if (retByte[0] == (255 - validChkSum)) {
+                        receiveCmd = new byte[FRAME_SIZE];
+                        System.arraycopy(ReceiveBuffer.mainBuf, 4, receiveCmd, 0, validDataCnt);
+                        ret = true;
+                    } else {
+                        if (D) Log.d(TAG, "Checksum Error Occurred!!!");
+                        validState = CMD_STX;
+                        ReceiveBuffer.initBuffer((byte)0x00);
+                        ret = false;
+                    }
+                    break;
+            }
+        }
+
+        return ret;
+    }
 
     public static boolean validateCommand() {
         boolean ret = false;

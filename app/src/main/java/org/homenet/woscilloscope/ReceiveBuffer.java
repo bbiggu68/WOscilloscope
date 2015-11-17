@@ -28,7 +28,8 @@ public final class ReceiveBuffer {
     public static boolean addData(byte[] inData, int size) {
         if (D) Log.d(TAG, "head = " + head + ", size = " + size);
         if ((size + head) > MAXSIZE) {
-            // 원형 버퍼가 차고 넘쳐서 더 이상 데이터를 담아놓을 수 없는 경우
+            // 원형 버퍼가 차고 넘쳐서 더 이상 데이터를 담아놓을 수 없는 경우, 전달 받은 데이터는 반려.
+            // UDP DatagramPacket을 사용한다면 이렇게 나눠져서 들어오는 일은 없다고 봐도 된다. (가정)
             bAcceptable = false;
             head = head % MAXSIZE;
             return false;
