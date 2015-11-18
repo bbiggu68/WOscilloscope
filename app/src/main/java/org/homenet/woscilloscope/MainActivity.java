@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import java.lang.ref.WeakReference;
 
@@ -15,10 +16,12 @@ public class MainActivity extends AppCompatActivity {
     // Debugging
     private final static String TAG = "MainActivity";
     private static final boolean D = true;
+    private long mRcvCount = 0;
     //
     public AppEntryPoint parentApplication = null;
     private SocketManager mSocketManagingClass = null;
     private Thread mThread4Socket = null;
+    private ScopePanel mScopeView;
     public InnerHandler handlerMain;
 
     static class InnerHandler extends Handler {
@@ -43,7 +46,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mScopeView = new ScopePanel(this);
         setContentView(R.layout.activity_main);
+//        setContentView(mScopeView);
+//        RelativeLayout vwMain = (RelativeLayout)findViewById(R.id.vwContainer);
+        LinearLayout vwScope = (LinearLayout)findViewById(R.id.vwScope);
+        vwScope.addView(mScopeView);
+
         handlerMain = new InnerHandler(MainActivity.this);
         parentApplication = (AppEntryPoint)getApplication();
     }
@@ -120,134 +129,24 @@ public class MainActivity extends AppCompatActivity {
 
                 if (tmpButton.getText().equals(getResources().getText(R.string.btnstart_caption))) {
                     tmpButton.setText(getResources().getText(R.string.btnstop_caption));
+                    mRcvCount = 0;
                     mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStart);
                 } else {
                     tmpButton.setText(getResources().getText(R.string.btnstart_caption));
                     mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStop);
+                    if (D) Log.d(TAG, "Received Frame Count = " + mRcvCount);
                 }
 
                 break;
         }
     }
     private void processReceiveCommand() {
-        int add = 0;
-        byte[] inB = new byte[4];
-        String temp="";
-        if (D) Log.d(TAG, "큐에 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
-
-        switch (CommandBuilder.receiveCmd[1])
-        {
-            case CommandBuilder.WirelessProbeCMD.cmdReceiveOKReturn:
-//                mCfgClass.ReceiveOK = true;
-//                synchronized (mCfgClass) {
-//                    mCfgClass.notify();
-//                }
-                break;
-            case CommandBuilder.WirelessProbeCMD.cmdStartStopQueryReturn:
-//                mCfgClass.START = 1;
-//                mCfgClass.ReceiveOK = true;
-//                synchronized (mCfgClass) {
-//                    mCfgClass.notify();
-//                }
-                break;
-            case CommandBuilder.WirelessProbeCMD.cmdStatusAllQueryReturn:
-//                add = 4;
-//                for (int i = 0; i < mCfgClass.HW_No; i++)
-//                {
-//                    mCfgClass.HW_I_Status[i] =  CommandBuilder.receiveCmd[add++];
-//                    for(int j =0; j< 4;j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.HW_I_Value[i] = Utils.arr2float(inB, 0);
-//                }
-//
-//                for (int i = 0; i < mCfgClass.TempNo; i++)
-//                {
-//                    for (int j = 0; j < 4; j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.Temp_Value[i] = Utils.arr2float(inB, 0);
-//                }
-//
-//                setWarningProtectionInfo();
-//                // Draw Cell Data
-//                mMessageHandler.sendEmptyMessage(THREADMSG.MA_DrawData);
-                break;
-            case CommandBuilder.WirelessProbeCMD.cmdPsConfigSetQueryReturn:
-//                add=4;
-//                int no =  (int)CommandBuilder.receiveCmd[add++];
-//                byte[] cName = new byte[no];
-//
-//                for(int i=0;i<no;i++) cName[i] = CommandBuilder.receiveCmd[add++];
-//
-//                temp = new String(cName);
-//                mCfgClass.FileName =temp;// cName.toString();
-//                mCfgClass.PsNo= (int)CommandBuilder.receiveCmd[add++];
-//
-//                for(int i=0;i<4;i++) inB[i] = CommandBuilder.receiveCmd[add++];
-//                mCfgClass.VsetMaster = Utils.arr2float(inB, 0);
-//
-//                for(int i=0;i<4;i++) inB[i] = CommandBuilder.receiveCmd[add++];
-//                mCfgClass.IsetMaster = Utils.arr2float(inB, 0);
-//
-//                for(int i=0;i<4;i++) inB[i] = CommandBuilder.receiveCmd[add++];
-//                mCfgClass.IProtect_Master = Utils.arr2float(inB, 0);
-//
-//                for(int i=0;i<mCfgClass.PsNo;i++)
-//                {
-//                    mCfgClass.PsEn[i] =  (int)CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.StringNo[i] =  (int)CommandBuilder.receiveCmd[add++];
-//
-//                    for(int j=0;j<4;j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.Vset[i] = Utils.arr2float(inB, 0);
-//
-//                    for(int j=0;j<4;j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.Iset[i] = Utils.arr2float(inB, 0);
-//
-//                    for(int j=0;j<4;j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.IProtect[i] = Utils.arr2float(inB, 0);
-//
-//                    no = (int)CommandBuilder.receiveCmd[add++];
-//                    cName = new byte[no];
-//                    for(int j=0;j<no;j++)  cName[j] = CommandBuilder.receiveCmd[add++];
-//                    temp = new String(cName);
-//                    mCfgClass.PsName[i] =temp;// cName.toString();
-//                }
-//                mCfgClass.ReceiveOK = true;
-                break;
-            case CommandBuilder.WirelessProbeCMD.cmdTempConfigSetQueryReturn:
-//                add=4;
-//                mCfgClass.TempNo  =  (int)CommandBuilder.receiveCmd[add++];
-//
-//                for(int i=0;i<4;i++) inB[i] = CommandBuilder.receiveCmd[add++];
-//                mCfgClass.TempProtectMaster = Utils.arr2float(inB, 0);
-//
-//                for(int i=0;i<mCfgClass.TempNo;i++)
-//                {
-//                    mCfgClass.TempEn[i] =  (int)CommandBuilder.receiveCmd[add++];
-//
-//                    for(int j=0;j<4;j++) inB[j] = CommandBuilder.receiveCmd[add++];
-//                    mCfgClass.TempProtect[i] = Utils.arr2float(inB, 0);
-//
-//                    no = (int)CommandBuilder.receiveCmd[add++];
-//                    cName = new byte[no];
-//                    for(int j=0;j<no;j++)  cName[j] = CommandBuilder.receiveCmd[add++];
-//                    temp = new String(cName);
-//                    mCfgClass.TempName[i] = temp;
-//                }
-//                mCfgClass.ReceiveOK = true;
-                break;
-            case CommandBuilder.WirelessProbeCMD.cmdPulseResult:
-                if (D) Log.d(TAG, "Receive Pulse Success!!!");
-                parentApplication.endtime = System.nanoTime();
-                if (D) Log.d(TAG, "Time of Data Receiving = " + ((parentApplication.endtime - parentApplication.starttime) / 1000000) + "ms");
-//                add=4;
-//                if (CommandBuilder.receiveCmd[add++] == CommandBuilder.WirelessProbeCMD.subcmdStart) {
-//                    // 데이터 전송 시작 명령이므로 데이터 전송 스레드 시작.
-//                    mSocketManagingClass.startGeneration();
-//                    if (D) Log.d(TAG, "Start Sending Data");
-//                } else {
-//                    // 데이터 전송 중단 명령이므로 데이터 전송 스레드 종료.
-//                    mSocketManagingClass.stopGeneration();
-//                    if (D) Log.d(TAG, "Stop Sending Data");
-//                };
-                break;
-        }
+//        if (D) Log.d(TAG, "큐에 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
+        parentApplication.endtime = System.nanoTime();
+        if (D) Log.d(TAG, "Time of Data Receiving = " + ((parentApplication.endtime - parentApplication.starttime) / 1000000) + "ms");
+        mRcvCount++;
+        mScopeView.sendDrawMsg();
+        try { Thread.sleep(50); } catch (InterruptedException e) {;}
+        mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdPulseReqest);
     }
 }

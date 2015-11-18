@@ -17,4 +17,7 @@ public final class ThreadMessage {
     public static final int SM_Connect = 1;
     public static final int SM_Disconnect = 2;
     public static final int SM_Send = 3;
+
+    // ScopePanel
+    public static final int SP_Draw = 0;
 }

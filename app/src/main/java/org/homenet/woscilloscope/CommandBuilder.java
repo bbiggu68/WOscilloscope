@@ -245,6 +245,7 @@ public final class CommandBuilder {
         public static final byte cmdStartStopQueryReturn = (byte) 0x1F;
 
         public static final byte cmdPulseResult = (byte) 0x20;
+        public static final byte cmdPulseReqest = (byte) 0x21;
 
         public static final byte cmdStatusAllQuery = (byte) 0xAA;
         public static final byte cmdStatusAllQueryReturn = (byte) 0xAF;

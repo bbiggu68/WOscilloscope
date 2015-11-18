@@ -80,7 +80,7 @@ public class SocketManager implements Runnable {
                         mSocket.setSoTimeout(SO_TIMEOUT_MS);
                         mSocket.receive(mReceivePacket);
 
-                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvBuffer.toString() + "'\n Size is '" + mReceivePacket.getLength());
+//                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvBuffer.toString() + "'\n Size is '" + mReceivePacket.getLength());
                         mCallerClone.parentApplication.starttime = System.nanoTime();
                         if (mReceivePacket.getLength() > 0) {
                             if (ReceiveBuffer.addData(rcvBuffer, mReceivePacket.getLength())) {
