@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
     private static final boolean D = true;
     private long mRcvCount = 0;
+    private boolean mResponseFlag = false;
     //
     public AppEntryPoint parentApplication = null;
     private SocketManager mSocketManagingClass = null;
@@ -37,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
                 case ThreadMessage.MA_PROC_RCV_CMD:
                     theMain.processReceiveCommand();
                     break;
+//                case ThreadMessage.MA_CHECK_RESPONSE:
+//                    theMain.checkRequestAndResponse();
+//                    break;
             }
         }
     }
@@ -110,7 +114,8 @@ public class MainActivity extends AppCompatActivity {
         switch (v.getId()) {
             case R.id.btnConnect:
                 // Start SocketManager Thread
-                mSocketManagingClass = new SocketManager("10.0.1.21", 5000, this);
+                mSocketManagingClass = new SocketManager("10.0.1.33", 5000, this);
+//                mSocketManagingClass = new SocketManager("192.168.0.5", 5000, this);
                 mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
                 mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
                 mThread4Socket.start();
@@ -135,18 +140,31 @@ public class MainActivity extends AppCompatActivity {
                     tmpButton.setText(getResources().getText(R.string.btnstart_caption));
                     mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStop);
                     if (D) Log.d(TAG, "Received Frame Count = " + mRcvCount);
+                    if (D) Log.d(TAG, "큐에 남아있는 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
                 }
 
                 break;
         }
     }
     private void processReceiveCommand() {
+        mResponseFlag = true;
 //        if (D) Log.d(TAG, "큐에 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
         parentApplication.endtime = System.nanoTime();
         if (D) Log.d(TAG, "Time of Data Receiving = " + ((parentApplication.endtime - parentApplication.starttime) / 1000000) + "ms");
         mRcvCount++;
+        // 화면 그리기 메시지를 DrawThread에 보내면 평균적인 화면 그리기 시간인 50ms 정도가 소요된다.
         mScopeView.sendDrawMsg();
-        try { Thread.sleep(50); } catch (InterruptedException e) {;}
-        mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdPulseReqest);
+        // 50ms 정도의 화면 그리기가 수행완료되기 전에 데이터 요청을 보내면 평균적인 수신 시간이 1ms 정도이므로 화면에 그려야 할 데이터가 메모리가 넘치도록 쏟아져 들어오므로
+        // 평균 그리기 시간 정도 대기를(Thread.sleep(50)) 했다가 데이터 요청을 보내도록 하였다.
+//        try { Thread.sleep(50); } catch (InterruptedException e) {;}
+//        mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdPulseReqest);
+//        mResponseFlag = false;
+//        handlerMain.sendEmptyMessageDelayed(ThreadMessage.MA_CHECK_RESPONSE, 1000);
     }
+
+//    private void checkRequestAndResponse() {
+//        if (!mResponseFlag) {
+//            mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdPulseReqest);
+//        }
+//    }
 }
