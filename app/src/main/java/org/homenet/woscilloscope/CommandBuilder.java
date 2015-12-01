@@ -235,6 +235,7 @@ public final class CommandBuilder {
     }
 
     public final class WirelessProbeCMD {
+        public static final byte cmdFTLabID = (byte) 0x00;
         public static final byte cmdDeviceOKQuery = (byte) 0x01;
 
         public static final byte cmdStartStop = (byte) 0x10;
