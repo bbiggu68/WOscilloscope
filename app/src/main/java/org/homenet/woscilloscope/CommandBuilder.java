@@ -10,7 +10,7 @@ import java.util.Queue;
  */
 public final class CommandBuilder {
     // Debugging
-    private final static String TAG = "CommandBuilder";
+    private final static String TAG = CommandBuilder.class.getSimpleName();
     private static final boolean D = true;
     //
     public static final int CMD_STX = 0;

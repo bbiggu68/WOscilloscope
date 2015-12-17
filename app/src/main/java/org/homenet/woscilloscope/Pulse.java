@@ -11,7 +11,7 @@ import android.util.Log;
  */
 public class Pulse {
     // Debugging
-    private final static String TAG = "Pulse";
+    private final static String TAG = Pulse.class.getSimpleName();
     private static final boolean D = true;
     //
     float data[]  = new float[10000];

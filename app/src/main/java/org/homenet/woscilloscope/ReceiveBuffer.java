@@ -7,7 +7,7 @@ import android.util.Log;
  */
 public final class ReceiveBuffer {
     // Debugging
-    private final static String TAG = "ReceiveBuffer";
+    private final static String TAG = ReceiveBuffer.class.getSimpleName();
     private static final boolean D = true;
     //
     public static final int MAXSIZE = 65536;

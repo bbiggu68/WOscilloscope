@@ -8,7 +8,7 @@ import android.content.res.Configuration;
  */
 public class AppEntryPoint extends Application {
     // Debugging
-    private final static String TAG = "AppEntryPoint";
+    private final static String TAG = AppEntryPoint.class.getSimpleName(); //"AppEntryPoint";
     private static final boolean D = true;
     //
     public long starttime = 0;

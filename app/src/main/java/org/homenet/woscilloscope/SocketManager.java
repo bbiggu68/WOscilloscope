@@ -16,7 +16,7 @@ import java.net.SocketException;
  */
 public class SocketManager implements Runnable {
     // Debugging
-    private final static String TAG = "SocketManager";
+    private final static String TAG = SocketManager.class.getSimpleName();
     private static final boolean D = true;
     // private 상수
     private final static int FRAME_SIZE = 10000;

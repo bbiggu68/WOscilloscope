@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference;
 
 public class MainActivity extends AppCompatActivity {
     // Debugging
-    private final static String TAG = "MainActivity";
+    private final static String TAG = MainActivity.class.getSimpleName();
     private static final boolean D = true;
     private long mRcvCount = 0;
     private boolean mResponseFlag = false;
@@ -74,11 +74,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        createSocketManager();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        destroySocketManager();
     }
 
     @Override
@@ -112,23 +114,6 @@ public class MainActivity extends AppCompatActivity {
     //==========================================
     public void mOnClick(View v) {
         switch (v.getId()) {
-            case R.id.btnConnect:
-                // Start SocketManager Thread
-                mSocketManagingClass = new SocketManager("10.0.1.33", 5000, this);
-//                mSocketManagingClass = new SocketManager("192.168.0.5", 5000, this);
-                mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
-                mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
-                mThread4Socket.start();
-                // 스레드 start()하고 조금 기다려야 스레드의 run()이 실행되서 핸들러가 만들어진다.
-                try { Thread.sleep(50); } catch (InterruptedException e) {;}
-                mSocketManagingClass.connect();
-                break;
-            case R.id.btnDisconnect:
-                mSocketManagingClass.disconnect();
-                if (mThread4Socket.isAlive()) {
-                    mSocketManagingClass.quit();
-                }
-                break;
             case R.id.btnStart:
                 Button tmpButton = (Button)v;
 
@@ -146,6 +131,26 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
+
+    private void createSocketManager() {
+        // Start SocketManager Thread
+        mSocketManagingClass = new SocketManager("10.0.1.33", 5000, this);
+//                mSocketManagingClass = new SocketManager("192.168.0.5", 5000, this);
+        mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
+        mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
+        mThread4Socket.start();
+        // 스레드 start()하고 조금 기다려야 스레드의 run()이 실행되서 핸들러가 만들어진다.
+        try { Thread.sleep(50); } catch (InterruptedException e) {;}
+        mSocketManagingClass.connect();
+    }
+
+    private void destroySocketManager() {
+        mSocketManagingClass.disconnect();
+        if (mThread4Socket.isAlive()) {
+            mSocketManagingClass.quit();
+        }
+    }
+
     private void processReceiveCommand() {
         mResponseFlag = true;
 //        if (D) Log.d(TAG, "큐에 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());

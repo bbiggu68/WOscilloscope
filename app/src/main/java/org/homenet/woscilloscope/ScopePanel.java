@@ -19,7 +19,7 @@ import android.view.SurfaceView;
  */
 public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
     // Debugging
-    private final static String TAG = "ScopePanel";
+    private final static String TAG = ScopePanel.class.getSimpleName();
     private static final boolean D = true;
     //
     Bitmap mBack;
