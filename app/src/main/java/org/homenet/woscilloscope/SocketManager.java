@@ -192,6 +192,7 @@ public class SocketManager implements Runnable {
         try {
             mSocket = new DatagramSocket(mLocalHostPort);
             //mSocket = new DatagramSocket();
+            mSocket.setBroadcast(false);
             mSocket.connect(mRemoteHostInetAddr, mRemoteHostPort);
             if (D) Log.d(TAG, "Remote Host Connecting OK!");
             mKillThread = false;

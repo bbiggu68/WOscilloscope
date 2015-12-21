@@ -79,8 +79,10 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // 새로운 볼 생성
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
 
             return true;
