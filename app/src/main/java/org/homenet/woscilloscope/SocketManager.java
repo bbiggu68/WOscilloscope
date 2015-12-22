@@ -44,8 +44,6 @@ public class SocketManager implements Runnable {
                 switch (msg.what) {
                     case ThreadMessage.SM_Connect:	// connect
                         connectHost(mRemoteHostIP, mRemoteHostPort); // Connect Remote Host
-                        mReceiveThread = new Thread(mReciver, "DataReceiver");
-                        mReceiveThread.start();
                         break;
                     case ThreadMessage.SM_Disconnect:	// disconnect
                         disconnectHost();
@@ -83,6 +81,9 @@ public class SocketManager implements Runnable {
 //                        if (D) Log.d(TAG, "Successful Received: Data is '" + rcvBuffer.toString() + "'\n Size is '" + mReceivePacket.getLength());
                         mCallerClone.parentApplication.starttime = System.nanoTime();
                         if (mReceivePacket.getLength() > 0) {
+                            mRemoteHostInetAddr = mReceivePacket.getAddress();
+                            mRemoteHostIP = mReceivePacket.getAddress().getHostAddress();
+                            mRemoteHostPort = mReceivePacket.getPort();
                             if (ReceiveBuffer.addData(rcvBuffer, mReceivePacket.getLength())) {
                                 if (ReceiveBuffer.head != ReceiveBuffer.tail) {
 //                                    if (CommandBuilder.validateCommand()) {
@@ -151,6 +152,25 @@ public class SocketManager implements Runnable {
         mHandler.sendEmptyMessage(ThreadMessage.SM_Disconnect);
     }
 
+    public void startProbe() {
+        mReceiveThread = new Thread(mReciver, "DataReceiver");
+        sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStart);
+        mSocket.close();
+        try {
+            mSocket = new DatagramSocket(mLocalHostPort);
+            //mSocket = new DatagramSocket();
+            mSocket.setBroadcast(false);
+//            mSocket.connect(mRemoteHostInetAddr, mRemoteHostPort);
+            if (D) Log.d(TAG, "Remote Host Connecting OK!");
+            mKillThread = false;
+        } catch (Exception e) {
+            if (D) Log.d(TAG, "Oops! Error Occurred in connecting...");
+        }
+        mReceiveThread.start();
+    }
+    public void stopProbe() {
+        sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStop);
+    }
     //===================================================
     // public method : SocketManager.sendCommand()
     //===================================================
@@ -192,7 +212,7 @@ public class SocketManager implements Runnable {
         try {
             mSocket = new DatagramSocket(mLocalHostPort);
             //mSocket = new DatagramSocket();
-            mSocket.setBroadcast(false);
+            mSocket.setBroadcast(true);
             mSocket.connect(mRemoteHostInetAddr, mRemoteHostPort);
             if (D) Log.d(TAG, "Remote Host Connecting OK!");
             mKillThread = false;
@@ -225,10 +245,12 @@ public class SocketManager implements Runnable {
         {
             mSocket.send(mSendPacket);
             if (D) Log.d(TAG, "Successful Sent. Data is: '" + new String(data) + "'");
+            mSocket.setBroadcast(false);
         }
         catch(Exception send_e)
         {
             if (D) Log.d(TAG, "Oops! Error Occurred in sending...");
         }
+
     }
 }

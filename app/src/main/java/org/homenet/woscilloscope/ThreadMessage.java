@@ -8,6 +8,8 @@ public final class ThreadMessage {
     public static final int MA_PROC_RCV_CMD = 0;
     public static final int MA_DrawData = 1;
     public static final int MA_CHECK_RESPONSE = 2;
+    public static final int MA_SEND_HSCALE_CMD = 3;
+    public static final int MA_SEND_VSCALE_CMD = 4;
     // Timer4StatusAllQuery
     public static final int TM_TimerSendQuery = 1;
     // Timer4ReceivedCommands

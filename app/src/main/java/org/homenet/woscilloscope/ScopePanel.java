@@ -176,17 +176,18 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
                     // 가로이동과 세로이동이 모두 유효한 크기이면 대각선 핀치 줌 동작으로 보고 무시
                 } else {
                     // 가로이동만 유효한 크기이면 수평 스케일 동작으로 인식.
-
+                    mCallerClone.orderCommandSending(CommandBuilder.WirelessProbeCMD.cmdSetHorizontalScale);
                 }
             } else {
                 // 가로이동이 유효한 크기 이하이면 무시.
+
             }
             if (Math.abs(distY) > 50.f) {
                 if (Math.abs(distX) > 50.f) {
                     // 가로이동과 세로이동이 모두 유효한 크기이면 대각선 핀치 줌 동작으로 보고 무시
                 } else {
                     // 세로이동만 유효한 크기이면 수직 스케일 동작으로 인식.
-
+                    mCallerClone.orderCommandSending(CommandBuilder.WirelessProbeCMD.cmdSetVerticalScale);
                 }
             } else {
                 // 세로이동이 유효한 크기 이하이면 무시.

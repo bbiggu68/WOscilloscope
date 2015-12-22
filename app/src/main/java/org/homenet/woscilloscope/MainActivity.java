@@ -38,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
                 case ThreadMessage.MA_PROC_RCV_CMD:
                     theMain.processReceiveCommand();
                     break;
+                case ThreadMessage.MA_SEND_HSCALE_CMD:
+                    theMain.processReceiveCommand();
+                    break;
+                case ThreadMessage.MA_SEND_VSCALE_CMD:
+                    theMain.processReceiveCommand();
+                    break;
 //                case ThreadMessage.MA_CHECK_RESPONSE:
 //                    theMain.checkRequestAndResponse();
 //                    break;
@@ -120,10 +126,10 @@ public class MainActivity extends AppCompatActivity {
                 if (tmpButton.getText().equals(getResources().getText(R.string.btnstart_caption))) {
                     tmpButton.setText(getResources().getText(R.string.btnstop_caption));
                     mRcvCount = 0;
-                    mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStart);
+                    mSocketManagingClass.startProbe();
                 } else {
                     tmpButton.setText(getResources().getText(R.string.btnstart_caption));
-                    mSocketManagingClass.sendCommand(CommandBuilder.WirelessProbeCMD.cmdStartStop, CommandBuilder.WirelessProbeCMD.subcmdStop);
+                    mSocketManagingClass.stopProbe();
                     if (D) Log.d(TAG, "Received Frame Count = " + mRcvCount);
                     if (D) Log.d(TAG, "큐에 남아있는 프레임이 몇개?" + CommandBuilder.rcvCmdQueue.size());
                 }
@@ -132,10 +138,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void orderCommandSending(byte cmd) {
+        mSocketManagingClass.sendCommand(cmd);
+    }
+
     private void createSocketManager() {
         // Start SocketManager Thread
 //        mSocketManagingClass = new SocketManager("192.168.0.11", 5000, this);
-        mSocketManagingClass = new SocketManager("10.0.1.33", 5000, this);
+        mSocketManagingClass = new SocketManager("255.255.255.255", 5000, this);
 //                mSocketManagingClass = new SocketManager("192.168.0.5", 5000, this);
         mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
         mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.

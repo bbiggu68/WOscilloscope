@@ -248,6 +248,10 @@ public final class CommandBuilder {
         public static final byte cmdPulseResult = (byte) 0x20;
         public static final byte cmdPulseReqest = (byte) 0x21;
 
+        public static final byte cmdSetVerticalScale = (byte) 0x30;
+        public static final byte cmdSetHorizontalScale = (byte) 0x31;
+
+
         public static final byte cmdStatusAllQuery = (byte) 0xAA;
         public static final byte cmdStatusAllQueryReturn = (byte) 0xAF;
 
