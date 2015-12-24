@@ -235,8 +235,41 @@ public final class CommandBuilder {
     }
 
     public final class WirelessProbeCMD {
-        public static final byte cmdFTLabID = (byte) 0x00;
-        public static final byte cmdDeviceOKQuery = (byte) 0x01;
+        //=== Command Only
+        public static final byte cmdScanProbe = (byte) 0xF0;        // 프루브 스캐닝 패킷
+        //=== Command with Arguments
+        // Probe Info : Name, Type
+        public static final byte cmdScanResponse = (byte) 0xF1;     // 프루브 스캐닝에 대한 응답으로 수신되는 패킷
+        //=== Command Only
+        public static final byte cmdStartMeasure = (byte) 0xF2;     // 프루브 동작 시작
+        public static final byte cmdStopMeasure = (byte) 0xF3;      // 프루브 동작 중단
+
+        //=== Command with Arguments
+        // Vertical Scale, Vertical Position, Horizontal Scale, Trigger Mode, Trigger Type, Trigger Level, Trigger Position, Selected Channel
+        // Vertical Scale : Voltage Scale (Div별). Depend on Probe. (2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000 mV) => 1Byte 인덱스
+        // Vertical Position : fine = 0.1% 씩 1000 단계, coarse = 1% 씩 100단계. (0~100%) 2Byte Integer
+        // Horizontal Scale : Time Scale (Div별). Common. (0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1, 2, 4, 10, 20, 40, 100, 200, 400, 1000, 2000, 4000, 10000 ms) = 4Byte Float
+        // Trigger Mode :  Depend on Probe. (Auto=0, Normal=1, Single=2) 4Bit
+        // Trigger Type :  Depend on Probe. (Rising Edge=0, Falling Edge=1) 4Bit
+        // Trigger Level : Depend on Probe. fine = 1~200 단계, coarse = 1~100 단계. 현재 Vertical Scale에 따라 값이 달라짐. ex) 2mV라면 Full 20mV fine 일 때는 -10mV ~ 10mV
+        // Trigger Position : Depend on Probe. fine = 0.1% 씩 1000 단계, coarse = 1% 씩 100단계. (0~100%) 2Byte Integer
+        public static final byte cmdSetConfig = (byte) 0xE0;
+        public static final byte cmdQueryConfig = (byte) 0xE1;
+        public static final byte cmdQueryConfigResult = (byte) 0xE2;
+
+        //=== Command Only
+        // Battery Status
+        public static final byte cmdQueryBatteryStatus = (byte) 0xE3;
+        //=== Command with Arguments
+        // Battery Status : 배터리 잔량율 (0 ~ 100 %)
+        public static final byte cmdQueryBatteryStatusResult = (byte) 0xE4;
+
+        //=== Command with Arguments
+        // Trigger Mode = Normal인 경우)무조건 100ms 주기로 1Frame씩(1000Byte)수신될 것임.  or Trigger Mode = Single인 경우 한번 수신하고 전송 중단.
+        public static final byte cmdReceivedData = (byte) 0xD0;
+        // 가변 크기로 100ms주기로 수신될 것임. 1Frame중에 몇 번째 인지를 표시하는 헤더가 있어야 하나?
+        public static final byte cmdReceivedFragmantedData = (byte) 0xD1;
+
 
         public static final byte cmdStartStop = (byte) 0x10;
         public static final byte subcmdStart = (byte) 0x01;
@@ -248,6 +281,7 @@ public final class CommandBuilder {
         public static final byte cmdPulseResult = (byte) 0x20;
         public static final byte cmdPulseReqest = (byte) 0x21;
 
+        public static final byte cmdSetTriggerMode = (byte) 0x30;
         public static final byte cmdSetVerticalScale = (byte) 0x30;
         public static final byte cmdSetHorizontalScale = (byte) 0x31;
 
