@@ -40,6 +40,16 @@ public final class Utils {
         return array;
     }
 
+    public static short byteToShort(byte[] data) {
+
+        short result = 0;
+
+        result += ((data[0] & 0xff));
+        result += ((data[1] & 0xff) << (8));
+
+        return result;
+    }
+
     public static short readShort(byte[] data, int offset) {
 
         return (short) (((data[offset] & 0xff)) | ((data[offset + 1] & 0xff) << 8));

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -35,8 +36,6 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
         super(context);
         mCallerClone = (MainActivity)context;
         //mBack = BitmapFactory.decodeResource(context.getResources(), R.drawable.background);
-        prepareBackGroundGrid();
-        dstRect = new Rect(0, 0, 1919, 1053); // 가로 모드일 때, 1920 * 1054 픽셀이 가용한 그리기 영역임.
         // 표면에 변화가 생길때의 이벤트를 처리할 콜백을 자신으로 지정한다.
         mHolder = getHolder();
         mHolder.addCallback(this);
@@ -45,20 +44,47 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
         mPulse.initPulse();
         //
         mScaleGestureDetector = new ScaleGestureDetector(context, mScaleGestureListener);
+
     }
     // 배경 그리드를 그린다.
-    private void prepareBackGroundGrid() {
-        mBack = Bitmap.createBitmap(1920, 1054, Bitmap.Config.ARGB_8888);
+    private void prepareBackGroundGrid(int width, int height) {
+        mBack = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas offscreen = new Canvas(mBack);
-        offscreen.drawColor(Color.LTGRAY);
+        offscreen.drawColor(Color.BLACK);
         Paint Pnt = new Paint();
-        Pnt.setColor(Color.WHITE);
-        Pnt.setStrokeWidth(5.0f);
-        for (int x = 0; x < 1920; x += 192) {
-            offscreen.drawLine(x, 0, x, 1054, Pnt);
+        Pnt.setColor(Color.LTGRAY);
+
+        // 외곽선 그리기
+//        offscreen.drawLine(0, 0, width, height, Pnt);
+        Pnt.setStrokeWidth(3.0f);
+        Pnt.setStyle(Paint.Style.STROKE);
+        offscreen.drawRect(0, 0, width-1, height-1, Pnt);
+//        Pnt.setPathEffect(new DashPathEffect(new float[]{10, 10}, 0));
+//        Pnt.setPathEffect(new DashPathEffect(new float[] {10, 10 }, 3));
+        Pnt.setPathEffect(new DashPathEffect(new float[] {2, 2 }, 0));
+
+        Pnt.setStrokeWidth(1.5f);
+        int incWidth = width / 10;
+        int count = 0;
+        for (int x = 0; x < width; x += incWidth) {
+            if (count == 5) {
+                Pnt.setStrokeWidth(5.0f);
+                offscreen.drawLine(x, 0, x, height, Pnt);
+                Pnt.setStrokeWidth(1.5f);
+            }
+            offscreen.drawLine(x, 0, x, height, Pnt);
+            count++;
         }
-        for (int y = 0; y < 1054; y += 105) {
-            offscreen.drawLine(0, y, 1920, y, Pnt);
+        int incHeight = height / 10;
+        count = 0;
+        for (int y = 0; y < height-10; y += incHeight) {
+            if (count == 5) {
+                Pnt.setStrokeWidth(6.0f);
+                offscreen.drawLine(0, y, width, y, Pnt);
+                Pnt.setStrokeWidth(1.5f);
+            }
+            offscreen.drawLine(0, y, width, y, Pnt);
+            count++;
         }
     }
 
@@ -68,6 +94,12 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     // 표면이 생성될 때 그리기 스레드를 시작한다.
     public void surfaceCreated(SurfaceHolder holder) {
+        int width = this.getWidth();
+        int height = this.getHeight();
+        prepareBackGroundGrid(width, height);
+        mPulse.setWidth(width);
+        mPulse.setHeight(height);
+        dstRect = new Rect(0, 0, width-1, height-1); // 가로 모드일 때, 1920 * 1054 픽셀이 가용한 그리기 영역임.
         mThread = new DrawThread(mHolder);
         mThread.start();
     }
@@ -223,6 +255,7 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
         public void SizeChange(int Width, int Height) {
             mWidth = Width;
             mHeight = Height;
+//            prepareBackGroundGrid(mWidth, mHeight);
         }
 
         private void drawPulse() {
@@ -235,6 +268,7 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
                 if (canvas == null) return;
                 //canvas.drawColor(Color.BLACK);
                 canvas.drawBitmap(mBack, null, dstRect, null);
+                canvas.translate(0, mHeight); // 좌상단 원점(0, 0)을 지정된 위치로 원점 이동
 
                 if (mPulse != null) {
                     mPulse.makeData();

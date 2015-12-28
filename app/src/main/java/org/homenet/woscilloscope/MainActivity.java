@@ -145,7 +145,8 @@ public class MainActivity extends AppCompatActivity {
     private void createSocketManager() {
         // Start SocketManager Thread
 //        mSocketManagingClass = new SocketManager("192.168.0.11", 5000, this);
-        mSocketManagingClass = new SocketManager("255.255.255.255", 5000, this);
+//        mSocketManagingClass = new SocketManager("255.255.255.255", 5000, this);
+        mSocketManagingClass = new SocketManager("192.168.0.44", 50010, this);   // WP 하드웨어에 연결
 //                mSocketManagingClass = new SocketManager("192.168.0.5", 5000, this);
         mThread4Socket = new Thread(mSocketManagingClass, "SocketMgr");
         mThread4Socket.setDaemon(true); // UI 스레드가 가면 같이 간다.
