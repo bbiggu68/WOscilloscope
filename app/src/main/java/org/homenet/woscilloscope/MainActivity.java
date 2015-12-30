@@ -1,11 +1,17 @@
 package org.homenet.woscilloscope;
 
+import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -25,6 +31,272 @@ public class MainActivity extends AppCompatActivity {
     private ScopePanel mScopeView;
     public InnerHandler handlerMain;
 
+    //
+    /**
+     * Whether or not the system UI should be auto-hidden after
+     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
+     */
+    private static final boolean AUTO_HIDE = true;
+
+    /**
+     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
+     * user interaction before hiding the system UI.
+     */
+    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 300;
+    private View mContentView;
+    private final Runnable mHidePart2Runnable = new Runnable() {
+        @SuppressLint("InlinedApi")
+        @Override
+        public void run() {
+            // Delayed removal of status and navigation bar
+
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+//                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+//                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+//                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    };
+    private View mControlsView;
+    private final Runnable mShowPart2Runnable = new Runnable() {
+        @Override
+        public void run() {
+            // Delayed display of UI elements
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.show();
+            }
+            mControlsView.setVisibility(View.VISIBLE);
+        }
+    };
+    private boolean mVisible;
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
+    /**
+     * Touch listener to use for in-layout UI controls to delay hiding the
+     * system UI. This is to prevent the jarring behavior of controls going away
+     * while interacting with activity UI.
+     */
+    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if (AUTO_HIDE) {
+                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+            }
+            return false;
+        }
+    };
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide(100);
+    }
+
+    private void toggle() {
+        if (mVisible) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+        mControlsView.setVisibility(View.GONE);
+        mVisible = false;
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        handlerMain.removeCallbacks(mShowPart2Runnable);
+        handlerMain.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Show the system bar
+//        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+        mVisible = true;
+        // Schedule a runnable to display UI elements after a delay
+        handlerMain.removeCallbacks(mHidePart2Runnable);
+        handlerMain.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    /**
+     * Schedules a call to hide() in [delay] milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        handlerMain.removeCallbacks(mHideRunnable);
+        handlerMain.postDelayed(mHideRunnable, delayMillis);
+    }
+    // ScopePanel에서 발생하는 제스쳐를 처리할 GestureDetector.SimpleOnGestureListener
+    private final GestureDetector.SimpleOnGestureListener mGestureListener
+            = new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+        @Override
+        public boolean onSingleTapConfirmed (MotionEvent e) {
+            return true;
+        }
+        @Override
+        public boolean onSingleTapUp (MotionEvent e) {
+            toggle();
+            return true;
+        }
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            return true;
+        }
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            return true;
+        }
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            return true;
+        }
+    };
+    // ScopePanel에서 발생하는 스케일 제스쳐를 처리할 ScaleGestureDetector.OnScaleGestureListener
+    private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener
+            = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        private float lastSpanX;
+        private float lastSpanY;
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
+            lastSpanX = scaleGestureDetector.getCurrentSpanX();
+            lastSpanY = scaleGestureDetector.getCurrentSpanY();
+            if (D) Log.d(TAG, "onScaleBegin : spanX = " + lastSpanX + ", spanY = " + lastSpanY);
+            return true;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+//            float spanX = ScaleGestureDetectorCompat.getCurrentSpanX(scaleGestureDetector);
+//            float spanY = ScaleGestureDetectorCompat.getCurrentSpanY(scaleGestureDetector);
+//
+//            float distX = lastSpanX - spanX;
+//            float distY = lastSpanY - spanY;
+//
+//            float newWidth = 0.0f;
+//            float newHeight = 0.0f;
+//
+//            if (Math.abs(distX) > 5.f) {
+//                if (Math.abs(distY) > 5.f) {
+//                    newWidth = 1 * mCurrentViewport.width();
+//                } else {
+//                    newWidth = lastSpanX / spanX * mCurrentViewport.width();
+//                }
+//            } else {
+//                newWidth = 1 * mCurrentViewport.width();
+//            }
+//            if (Math.abs(distY) > 5.f) {
+//                if (Math.abs(distX) > 5.f) {
+//                    newHeight = 1 * mCurrentViewport.height();
+//                } else {
+//                    newHeight = lastSpanY / spanY * mCurrentViewport.height();
+//                }
+//            } else {
+//                newHeight = 1 * mCurrentViewport.height();
+//            }
+//
+////            float newWidth = lastSpanX / spanX * mCurrentViewport.width();
+////            float newHeight = lastSpanY / spanY * mCurrentViewport.height();
+//
+//            Log.d("ILineGraphView", "distX = " + distX + ", distY = " + distY + ", newWidth = " + newWidth + ", newHeight = " + newHeight);
+//            float focusX = scaleGestureDetector.getFocusX();
+//            float focusY = scaleGestureDetector.getFocusY();
+//            hitTest(focusX, focusY, viewportFocus);
+//
+//            mCurrentViewport.set(
+//                    viewportFocus.x
+//                            - newWidth * (focusX - mContentRect.left)
+//                            / mContentRect.width(),
+//                    viewportFocus.y
+//                            - newHeight * (mContentRect.bottom - focusY)
+//                            / mContentRect.height(),
+//                    0,
+//                    0);
+//            mCurrentViewport.right = mCurrentViewport.left + newWidth;
+//            mCurrentViewport.bottom = mCurrentViewport.top + newHeight;
+//            constrainViewport();
+//            ViewCompat.postInvalidateOnAnimation(InteractiveLineGraphView.this);
+//
+//            lastSpanX = spanX;
+//            lastSpanY = spanY;
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector scaleGestureDetector) {
+
+            float spanX = scaleGestureDetector.getCurrentSpanX();
+            float spanY = scaleGestureDetector.getCurrentSpanY();
+            if (D) Log.d(TAG, "onScaleEnd : spanX = " + spanX + ", spanY = " + spanY);
+
+            float distX = lastSpanX - spanX;
+            float distY = lastSpanY - spanY;
+
+            if (Math.abs(distX) > 50.f) {
+                if (Math.abs(distY) > 50.f) {
+                    // 가로이동과 세로이동이 모두 유효한 크기이면 대각선 핀치 줌 동작으로 보고 무시
+                } else {
+                    // 가로이동만 유효한 크기이면 수평 스케일 동작으로 인식.
+                    orderCommandSending(CommandBuilder.WirelessProbeCMD.cmdSetHorizontalScale);
+                }
+            } else {
+                // 가로이동이 유효한 크기 이하이면 무시.
+
+            }
+            if (Math.abs(distY) > 50.f) {
+                if (Math.abs(distX) > 50.f) {
+                    // 가로이동과 세로이동이 모두 유효한 크기이면 대각선 핀치 줌 동작으로 보고 무시
+                } else {
+                    // 세로이동만 유효한 크기이면 수직 스케일 동작으로 인식.
+                    orderCommandSending(CommandBuilder.WirelessProbeCMD.cmdSetVerticalScale);
+                }
+            } else {
+                // 세로이동이 유효한 크기 이하이면 무시.
+            }
+            if (D) Log.d(TAG, "distX = " + distX + ", distY = " + distY);
+        }
+    };
+    //
     static class InnerHandler extends Handler {
         WeakReference<MainActivity> mMainAct;
 
@@ -56,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mScopeView = new ScopePanel(this);
+        mScopeView = new ScopePanel(this, mScaleGestureListener, mGestureListener);
         setContentView(R.layout.activity_main);
 //        setContentView(mScopeView);
 //        RelativeLayout vwMain = (RelativeLayout)findViewById(R.id.vwContainer);
@@ -65,6 +337,25 @@ public class MainActivity extends AppCompatActivity {
 
         handlerMain = new InnerHandler(MainActivity.this);
         parentApplication = (AppEntryPoint)getApplication();
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.vwScope);
+
+
+//        // Set up the user interaction to manually show or hide the system UI.
+////        mContentView.setOnClickListener(new View.OnClickListener() {
+//        mScopeView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                toggle();
+//            }
+//        });
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+        findViewById(R.id.btnStart).setOnTouchListener(mDelayHideTouchListener);
     }
 
     @Override
