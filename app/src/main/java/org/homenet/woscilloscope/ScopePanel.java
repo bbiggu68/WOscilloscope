@@ -176,7 +176,8 @@ public class ScopePanel extends SurfaceView implements SurfaceHolder.Callback {
                 if (canvas == null) return;
                 //canvas.drawColor(Color.BLACK);
                 canvas.drawBitmap(mBack, null, dstRect, null);
-                canvas.translate(0, mHeight); // 좌상단 원점(0, 0)을 지정된 위치로 원점 이동
+//                canvas.translate(0, mHeight); // 좌상단 원점(0, 0)을 지정된 위치로 원점 이동
+                canvas.translate(0, mHeight / 2); // 좌상단 원점(0, 0)을 지정된 위치로 원점 이동
 
                 if (mPulse != null) {
                     mPulse.makeData();

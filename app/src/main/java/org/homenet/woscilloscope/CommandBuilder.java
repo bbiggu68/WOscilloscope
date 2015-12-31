@@ -21,7 +21,7 @@ public final class CommandBuilder {
     public static final int CMD_CS = 5;
 
     public static final int MAXSIZE = 65536;
-    private final static int FRAME_SIZE = 10000;
+    private final static int FRAME_SIZE = 1000;
 
 //    public static int validState = CMD_STX;
     public static int validState = CMD_CMD;
@@ -39,6 +39,8 @@ public final class CommandBuilder {
         int[] retByte = {0};
         byte[] size = new byte[2];
         boolean loopexit = false;
+
+        validState = CMD_CMD;
 
         while (!loopexit) {
             // 원형버퍼에 데이터가 없거나 버퍼 MaxSize가 초과되었다면 invalidate 이므로 리젝트
@@ -74,7 +76,7 @@ public final class CommandBuilder {
                 case CMD_DATA:
                     validDataCnt++;
                     if (validDataCnt == validDataSize) {
-                        validState = CMD_CMD;
+
                         receiveCmd = new byte[FRAME_SIZE];
                         System.arraycopy(ReceiveBuffer.mainBuf, 3, receiveCmd, 0, validDataCnt);
                         ret = true;
