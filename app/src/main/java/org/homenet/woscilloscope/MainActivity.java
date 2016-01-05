@@ -1,20 +1,37 @@
 package org.homenet.woscilloscope;
 
 import android.annotation.SuppressLint;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.SearchManager;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 
@@ -30,6 +47,17 @@ public class MainActivity extends AppCompatActivity {
     private Thread mThread4Socket = null;
     private ScopePanel mScopeView;
     public InnerHandler handlerMain;
+    // Navigation Drawer
+    private DrawerLayout mDrawerLayout;
+//    private LinearLayout mDrawerControlContainer;
+    private NavigationView mDrawerControlContainer;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+    private CharSequence mDrawerTitle;
+    private CharSequence mTitle;
+    private String[] mPlanetTitles;
+
+    boolean mInitSpinner;
 
     //
     /**
@@ -59,12 +87,16 @@ public class MainActivity extends AppCompatActivity {
             // Note that some of these constants are new as of API 16 (Jelly Bean)
             // and API 19 (KitKat). It is safe to use them, as they are inlined
             // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE |
+//                    View.SYSTEM_UI_FLAG_FULLSCREEN
+//                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+//                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+//            mContentView.setSystemUiVisibility(
+//                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
 //            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
 //                    | View.SYSTEM_UI_FLAG_FULLSCREEN
 //                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -72,15 +104,37 @@ public class MainActivity extends AppCompatActivity {
 //                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Show the system bar
+//        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+//        mContentView.setSystemUiVisibility( View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+//        mContentView.setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+        mVisible = true;
+        // Schedule a runnable to display UI elements after a delay
+        handlerMain.removeCallbacks(mHidePart2Runnable);
+        handlerMain.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+    }
+
     private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
             // Delayed display of UI elements
             ActionBar actionBar = getSupportActionBar();
+//            ActionBar actionBar = getActionBar();
             if (actionBar != null) {
                 actionBar.show();
+//                getActionBar().show();
             }
+
             mControlsView.setVisibility(View.VISIBLE);
         }
     };
@@ -100,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
             if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+//                delayedHide(AUTO_HIDE_DELAY_MILLIS);
             }
             return false;
         }
@@ -113,7 +167,9 @@ public class MainActivity extends AppCompatActivity {
         // Trigger the initial hide() shortly after the activity has been
         // created, to briefly hint to the user that UI controls
         // are available.
-        delayedHide(100);
+//        delayedHide(100);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
     }
 
     private void toggle() {
@@ -127,8 +183,11 @@ public class MainActivity extends AppCompatActivity {
     private void hide() {
         // Hide UI first
         ActionBar actionBar = getSupportActionBar();
+//        ActionBar actionBar = getActionBar();
+
         if (actionBar != null) {
             actionBar.hide();
+//            getActionBar().hide();
         }
         mControlsView.setVisibility(View.GONE);
         mVisible = false;
@@ -136,22 +195,6 @@ public class MainActivity extends AppCompatActivity {
         // Schedule a runnable to remove the status and navigation bar after a delay
         handlerMain.removeCallbacks(mShowPart2Runnable);
         handlerMain.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-//        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-
-        mVisible = true;
-        // Schedule a runnable to display UI elements after a delay
-        handlerMain.removeCallbacks(mHidePart2Runnable);
-        handlerMain.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
     }
 
     /**
@@ -332,7 +375,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 //        setContentView(mScopeView);
 //        RelativeLayout vwMain = (RelativeLayout)findViewById(R.id.vwContainer);
-        LinearLayout vwScope = (LinearLayout)findViewById(R.id.vwScope);
+//        LinearLayout vwScope = (LinearLayout)findViewById(R.id.vwScope);
+        FrameLayout vwScope = (FrameLayout)findViewById(R.id.vwScope);
         vwScope.addView(mScopeView);
 
         handlerMain = new InnerHandler(MainActivity.this);
@@ -356,7 +400,141 @@ public class MainActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.btnStart).setOnTouchListener(mDelayHideTouchListener);
+        // Navigation Drawer
+        mTitle = mDrawerTitle = getTitle();
+        mPlanetTitles = getResources().getStringArray(R.array.planets_array);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        mDrawerControlContainer = (LinearLayout) findViewById(R.id.left_drawer);
+        mDrawerControlContainer = (NavigationView) findViewById(R.id.left_drawer);
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        //
+//        Log.d("Drawer Child", "차일드 갯수 = " + mDrawerControlContainer.getChildCount());
+        TextView tmpText = (TextView) findViewById(R.id.textView);
+        Log.d("Drawer Child", "TextView = " + tmpText.getText());
+        Spinner tmpSpinner = (Spinner) findViewById(R.id.spinner);
+        tmpSpinner.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mPlanetTitles));
+        tmpSpinner.setOnItemSelectedListener(new DrawerItemSelectedListner());
+        // enable ActionBar app icon to behave as action to toggle nav drawer
+        ActionBar actionBar = getSupportActionBar();
+//        ActionBar actionBar = getActionBar();
+//
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        }
+
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+//                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+                R.string.drawer_open,  /* "open drawer" description for accessibility */
+                R.string.drawer_close  /* "close drawer" description for accessibility */
+        ) {
+            public void onDrawerClosed(View view) {
+                ActionBar actionBar = getSupportActionBar();
+                if (actionBar != null) {
+                    actionBar.setTitle(mTitle);
+                }
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                ActionBar actionBar = getSupportActionBar();
+                if (actionBar != null) {
+                    actionBar.setTitle(mDrawerTitle);
+                }
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        if (savedInstanceState == null) {
+//            selectItem(0);
+        }
     }
+
+    private class DrawerItemSelectedListner implements Spinner.OnItemSelectedListener {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            if (mInitSpinner == false) {
+                mInitSpinner = true;
+            } else {
+                selectItem(position);
+            }
+        }
+
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // If the nav drawer is open, hide action items related to the content view
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerControlContainer);
+        menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // The action bar home/up action should open or close the drawer.
+        // ActionBarDrawerToggle will take care of this.
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        // Handle action buttons
+        switch(item.getItemId()) {
+            case R.id.action_websearch:
+                // create intent to perform web search for this planet
+                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                intent.putExtra(SearchManager.QUERY, getActionBar().getTitle());
+                // catch event that there's no activity to handle intent
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, R.string.app_not_available, Toast.LENGTH_LONG).show();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void selectItem(int position) {
+        // update selected item and title, then close the drawer
+//        mDrawerControlContainer.setItemChecked(position, true);
+        setTitle(mPlanetTitles[position]);
+        mDrawerLayout.closeDrawer(mDrawerControlContainer);
+    }
+
+    @Override
+    public void setTitle(CharSequence title) {
+        mTitle = title;
+//        getActionBar().setTitle(mTitle);
+        ActionBar actionBar = getSupportActionBar();
+//        ActionBar actionBar = getActionBar();
+//
+        if (actionBar != null) {
+            actionBar.setTitle(mTitle);
+        }
+    }
+    /**
+     * When using the ActionBarDrawerToggle, you must call it during
+     * onPostCreate() and onConfigurationChanged()...
+     */
+
 
     @Override
     protected void onStart () {
@@ -405,6 +583,8 @@ public class MainActivity extends AppCompatActivity {
         // 매니페스트 파일에 activity 태그에 android:configChanges="orientation|screenSize|keyboardHidden"
         // 설정이 되어 있는 경우에만 호출된다. 이렇게 configChanges 설정을 하면 화면방향 변경시 액티비티 재생성 하지 않음.
         super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggls
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
     //==========================================
     // User Methods
